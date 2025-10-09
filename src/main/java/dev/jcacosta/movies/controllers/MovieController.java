@@ -6,10 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,5 +25,14 @@ public class MovieController {
     @GetMapping("/{id}")
     public ResponseEntity<Optional<Movie>> getMovieById(@PathVariable("id") String imdbId){
         return new ResponseEntity<>(movieService.getMovieById(imdbId), HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Optional<Movie>> updateMovie(@PathVariable("id") String imdbId, @RequestBody Movie movieDetails) {
+        Optional<Movie> updatedMovie = movieService.updateMovie(imdbId, movieDetails);
+        if (updatedMovie.isPresent()) {
+            return new ResponseEntity<>(updatedMovie, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
