@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(MovieController.class)
@@ -103,5 +105,74 @@ class MovieControllerTest {
         mockMvc.perform(get("/api/v1/movies/invalid")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void createMovie_WithValidData_ShouldReturnCreatedMovie() throws Exception {
+        // Given
+        Movie newMovie = new Movie();
+        newMovie.setId(3L);
+        newMovie.setImdbId("tt9999999");
+        newMovie.setTitle("New Test Movie");
+        newMovie.setReleaseDate("2025-01-01");
+        newMovie.setGenres(Arrays.asList("Action", "Thriller"));
+
+        when(movieService.createMovie(any(Movie.class))).thenReturn(newMovie);
+
+        String movieJson = "{\"imdbId\":\"tt9999999\",\"title\":\"New Test Movie\",\"releaseDate\":\"2025-01-01\",\"genres\":[\"Action\",\"Thriller\"]}";
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(movieJson))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.imdbId").value("tt9999999"))
+                .andExpect(jsonPath("$.title").value("New Test Movie"))
+                .andExpect(jsonPath("$.releaseDate").value("2025-01-01"));
+    }
+
+    @Test
+    void createMovie_WithMissingTitle_ShouldReturnBadRequest() throws Exception {
+        // Given
+        when(movieService.createMovie(any(Movie.class)))
+                .thenThrow(new IllegalArgumentException("Movie title is required"));
+
+        String movieJson = "{\"imdbId\":\"tt9999999\",\"releaseDate\":\"2025-01-01\"}";
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(movieJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createMovie_WithMissingImdbId_ShouldReturnBadRequest() throws Exception {
+        // Given
+        when(movieService.createMovie(any(Movie.class)))
+                .thenThrow(new IllegalArgumentException("Movie IMDB ID is required"));
+
+        String movieJson = "{\"title\":\"New Movie\",\"releaseDate\":\"2025-01-01\"}";
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(movieJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createMovie_WithDuplicateImdbId_ShouldReturnBadRequest() throws Exception {
+        // Given
+        when(movieService.createMovie(any(Movie.class)))
+                .thenThrow(new IllegalArgumentException("Movie with IMDB ID tt0111161 already exists"));
+
+        String movieJson = "{\"imdbId\":\"tt0111161\",\"title\":\"Duplicate Movie\"}";
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(movieJson))
+                .andExpect(status().isBadRequest());
     }
 }

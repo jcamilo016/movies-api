@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,5 +42,17 @@ public class MovieController {
     public ResponseEntity<Optional<Movie>> getMovieById(
             @Parameter(description = "IMDB ID of the movie to retrieve", example = "tt0111161") @PathVariable("id") String imdbId) {
         return new ResponseEntity<>(movieService.getMovieById(imdbId), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Create a new movie", description = "Creates a new movie in the database with the provided information")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Movie created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload or missing required fields"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping
+    public ResponseEntity<Movie> createMovie(
+            @Parameter(description = "Movie data to create") @RequestBody Movie movie) {
+        return new ResponseEntity<>(movieService.createMovie(movie), HttpStatus.CREATED);
     }
 }

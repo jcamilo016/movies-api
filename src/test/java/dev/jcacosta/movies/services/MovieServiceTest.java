@@ -94,4 +94,82 @@ class MovieServiceTest {
         // Then
         assertThat(actualMovie).isEmpty();
     }
+
+    @Test
+    void createMovie_WithValidData_ShouldCreateMovie() {
+        // Given
+        Movie newMovie = new Movie();
+        newMovie.setImdbId("tt9999999");
+        newMovie.setTitle("New Test Movie");
+        newMovie.setReleaseDate("2025-01-01");
+
+        when(movieRepository.findByImdbId("tt9999999")).thenReturn(Optional.empty());
+        when(movieRepository.save(newMovie)).thenReturn(newMovie);
+
+        // When
+        Movie createdMovie = movieService.createMovie(newMovie);
+
+        // Then
+        assertThat(createdMovie).isNotNull();
+        assertThat(createdMovie.getImdbId()).isEqualTo("tt9999999");
+        assertThat(createdMovie.getTitle()).isEqualTo("New Test Movie");
+    }
+
+    @Test
+    void createMovie_WithMissingTitle_ShouldThrowException() {
+        // Given
+        Movie newMovie = new Movie();
+        newMovie.setImdbId("tt9999999");
+        newMovie.setTitle(null);
+
+        // When & Then
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            movieService.createMovie(newMovie);
+        });
+    }
+
+    @Test
+    void createMovie_WithEmptyTitle_ShouldThrowException() {
+        // Given
+        Movie newMovie = new Movie();
+        newMovie.setImdbId("tt9999999");
+        newMovie.setTitle("   ");
+
+        // When & Then
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            movieService.createMovie(newMovie);
+        });
+    }
+
+    @Test
+    void createMovie_WithMissingImdbId_ShouldThrowException() {
+        // Given
+        Movie newMovie = new Movie();
+        newMovie.setTitle("New Movie");
+        newMovie.setImdbId(null);
+
+        // When & Then
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            movieService.createMovie(newMovie);
+        });
+    }
+
+    @Test
+    void createMovie_WithDuplicateImdbId_ShouldThrowException() {
+        // Given
+        Movie existingMovie = new Movie();
+        existingMovie.setImdbId("tt0111161");
+        existingMovie.setTitle("Existing Movie");
+
+        Movie newMovie = new Movie();
+        newMovie.setImdbId("tt0111161");
+        newMovie.setTitle("New Movie with Duplicate ID");
+
+        when(movieRepository.findByImdbId("tt0111161")).thenReturn(Optional.of(existingMovie));
+
+        // When & Then
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            movieService.createMovie(newMovie);
+        });
+    }
 }
