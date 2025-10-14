@@ -2,29 +2,46 @@ package dev.jcacosta.movies.services;
 
 import dev.jcacosta.movies.domains.Movie;
 import dev.jcacosta.movies.domains.Review;
+import dev.jcacosta.movies.repositories.MovieRepository;
 import dev.jcacosta.movies.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private MovieRepository movieRepository;
 
     public Review createReview(String reviewBody, String imdbId) {
-        Review review = reviewRepository.insert(new Review(reviewBody));
+        Optional<Movie> movieOpt = movieRepository.findByImdbId(imdbId);
 
-        mongoTemplate.update(Movie.class)
-                .matching(Criteria.where("imdbId").is(imdbId))
-                .apply(new Update().push("reviewIds").value(review))
-                .first();
+        if (movieOpt.isEmpty()) {
+            throw new RuntimeException("Movie not found with imdbId: " + imdbId);
+        }
 
-        return review;
+        Movie movie = movieOpt.get();
+        Review review = new Review(reviewBody, movie);
+
+        return reviewRepository.save(review);
+    }
+
+    public List<Review> getReviewsByMovieImdbId(String imdbId) {
+        return reviewRepository.findByMovieImdbId(imdbId);
+    }
+
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
+    }
+
+    public Optional<Review> getReviewById(Long id) {
+        return reviewRepository.findById(id);
     }
 }

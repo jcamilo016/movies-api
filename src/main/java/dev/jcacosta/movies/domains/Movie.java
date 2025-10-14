@@ -1,14 +1,11 @@
 package dev.jcacosta.movies.domains;
 
 import lombok.*;
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
-
+import jakarta.persistence.*;
 import java.util.List;
 
-@Document(collection = "movies")
+@Entity
+@Table(name = "movies")
 @Getter
 @Setter
 @ToString
@@ -16,15 +13,29 @@ import java.util.List;
 @NoArgsConstructor
 public class Movie {
     @Id
-    private ObjectId id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
     private String imdbId;
+
+    @Column(nullable = false)
     private String title;
+
     private String releaseDate;
     private String trailerLink;
     private String poster;
-    private List<String> genres;
-    private List<String> backdrops;
-    @DocumentReference
-    private List<Review> reviewIds;
 
+    @ElementCollection
+    @CollectionTable(name = "movie_genres", joinColumns = @JoinColumn(name = "movie_id"))
+    @Column(name = "genre")
+    private List<String> genres;
+
+    @ElementCollection
+    @CollectionTable(name = "movie_backdrops", joinColumns = @JoinColumn(name = "movie_id"))
+    @Column(name = "backdrop")
+    private List<String> backdrops;
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Review> reviews;
 }
