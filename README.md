@@ -16,3 +16,19 @@ MONGO_PASSWORD=""
 MONGO_CLUSTER=""
 ```
 
+## API Documentation
+
+### Current Endpoints
+- `GET /api/v1/movies` - Retrieve all movies
+- `GET /api/v1/movies/{imdbId}` - Retrieve a single movie by IMDb ID
+
+### Planned Features
+For information about planned features and enhancements, see the [docs](./docs) directory.
+
+#### Upcoming: PATCH Endpoint
+A PATCH endpoint for partial movie updates is planned. See the detailed specification in [docs/PATCH-ENDPOINT-SPECIFICATION.md](./docs/PATCH-ENDPOINT-SPECIFICATION.md) for complete information including:
+- Feature description and benefits
+- Detailed acceptance criteria
+- API contract with examples
+- Technical implementation notes
+
